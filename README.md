@@ -1,6 +1,6 @@
 # rail_converter
 
-A new Rail Comverter application.
+A new Rail Converter application.
 
 ## Getting Started
 
