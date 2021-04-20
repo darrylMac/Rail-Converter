@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:rail_converter/constants.dart';
@@ -7,8 +8,12 @@ final String rCYButtonText = 'Yards\nto\nChains';
 final String lCSButtonText = 'Chains\nto\nSLUs';
 final String rCSButtonText = 'SLUs\nto\nChains';
 double input = 0;
+double input2 = 0;
 double result = 0;
+double result2 = 0;
+int screen = 0;
 String resultUnit = '';
+String resultUnit2 = '';
 
 void main() {
   runApp(MaterialApp(home: MainPage()));
@@ -43,7 +48,7 @@ class _MainPageState extends State<MainPage> {
                     lButtonText: lCYButtonText,
                     rButtonText: rCYButtonText,
                   ),
-                  ConverterLayout(
+                  ConverterLayout2(
                     title: 'Chains / SLUs',
                     hintText: 'Chains or SLUs',
                     lButtonText: lCSButtonText,
@@ -62,9 +67,14 @@ class _MainPageState extends State<MainPage> {
                 horizontal: 8.0,
                 vertical: 16,
               ),
-              child: Text(
-                'Innovative Digital - 2021',
-                style: TextStyle(color: Colors.white),
+              child: Row(
+                children: [
+                  Image.asset('images/IDLogo.png'),
+                  Text(
+                    '  -  2021 ©',
+                    style: TextStyle(color: Colors.white, fontSize: 8),
+                  )
+                ],
               ),
             ),
           ),
@@ -95,6 +105,10 @@ class _ConverterButtonState extends State<ConverterButton> {
         ),
         color: Colors.orange,
         padding: EdgeInsets.all(10),
+        elevation: 5,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
       ),
     );
   }
@@ -127,84 +141,230 @@ class _ConverterLayoutState extends State<ConverterLayout> {
     screenWidth = _mediaQueryData.size.width;
     screenHeight = _mediaQueryData.size.height;
 
-    return Container(
-      width: screenWidth,
-      color: Colors.white,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          Text(
-            widget.title,
-            style: h1TextStyle,
-          ),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.2),
-            child: TextField(
-              keyboardType: TextInputType.number,
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(
-                  RegExp(r'[0-9]'),
+    return Padding(
+      padding: const EdgeInsets.all(4.0),
+      child: Container(
+        width: screenWidth,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(25),
+          color: Colors.white,
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Text(
+              widget.title,
+              style: h1TextStyle,
+            ),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.2),
+              child: TextField(
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(
+                    RegExp(r'[0-9]'),
+                  ),
+                ],
+                onChanged: (value) => input = double.parse(value),
+                decoration: InputDecoration(
+                  hintText: widget.hintText,
+                ),
+              ),
+            ), //input
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ConverterButton(
+                  buttonText: widget.lButtonText,
+                  onPressed: () {
+                    SystemChannels.textInput.invokeMethod('TextInput.hide');
+                    result = 0;
+                    result2 = 0;
+                    resultUnit = '';
+                    resultUnit2 = '';
+                    if (widget.lButtonText == lCYButtonText) {
+                      screen = 1;
+                      setState(() {
+                        chainsToYardsConversion(input);
+                      });
+                    } else {
+                      screen = 2;
+                      setState(() {
+                        chainsToSlusConversion();
+                      });
+                    }
+                  },
+                ),
+                ConverterButton(
+                  buttonText: widget.rButtonText,
+                  onPressed: () {
+                    SystemChannels.textInput.invokeMethod('TextInput.hide');
+                    result = 0;
+                    result2 = 0;
+                    resultUnit = '';
+                    resultUnit2 = '';
+                    if (widget.rButtonText == rCYButtonText) {
+                      screen = 1;
+                      setState(() {
+                        yardsToChainsConversion();
+                      });
+                    } else {
+                      screen = 2;
+                      setState(() {
+                        slusToChainsConversion();
+                      });
+                    }
+                  },
                 ),
               ],
-              onChanged: (value) => input = double.parse(value),
-              decoration: InputDecoration(
-                hintText: widget.hintText,
-              ),
             ),
-          ), //input
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              ConverterButton(
-                buttonText: widget.lButtonText,
-                onPressed: () {
-                  SystemChannels.textInput.invokeMethod('TextInput.hide');
-                  if (widget.lButtonText == lCYButtonText) {
-                    setState(() {
-                      chainsToYardsConversion(input);
-                    });
-                  } else {
-                    setState(() {
-                      chainsToSlusConversion();
-                    });
-                  }
-                },
-              ),
-              ConverterButton(
-                buttonText: widget.rButtonText,
-                onPressed: () {
-                  SystemChannels.textInput.invokeMethod('TextInput.hide');
-                  if (widget.rButtonText == rCYButtonText) {
-                    setState(() {
-                      yardsToChainsConversion();
-                    });
-                  } else {
-                    setState(() {
-                      slusToChainsConversion();
-                    });
-                  }
-                },
-              ),
-            ],
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            textBaseline: TextBaseline.alphabetic,
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            children: [
-              Text(
-                result.toStringAsFixed(1),
-                style: h1TextStyle.copyWith(
-                  fontSize: 50,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              textBaseline: TextBaseline.alphabetic,
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              children: [
+                Text(
+                  result.toStringAsFixed(1),
+                  style: h1TextStyle.copyWith(
+                    fontSize: 50,
+                  ),
+                ),
+                SizedBox(
+                  width: 5,
+                ),
+                Text(resultUnit, style: h2TextStyle),
+              ],
+            ), // output
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class ConverterLayout2 extends StatefulWidget {
+  ConverterLayout2({
+    @required this.title,
+    @required this.hintText,
+    @required this.lButtonText,
+    @required this.rButtonText,
+  });
+
+  final String title;
+  final String hintText;
+  final String lButtonText;
+  final String rButtonText;
+  @override
+  _ConverterLayout2State createState() => _ConverterLayout2State();
+}
+
+class _ConverterLayout2State extends State<ConverterLayout2> {
+  static MediaQueryData _mediaQueryData;
+  static double screenWidth;
+  static double screenHeight;
+
+  @override
+  Widget build(BuildContext context) {
+    _mediaQueryData = MediaQuery.of(context);
+    screenWidth = _mediaQueryData.size.width;
+    screenHeight = _mediaQueryData.size.height;
+
+    return Padding(
+      padding: const EdgeInsets.all(4.0),
+      child: Container(
+        width: screenWidth,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(25),
+          color: Colors.white,
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Text(
+              widget.title,
+              style: h1TextStyle,
+            ),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.2),
+              child: TextField(
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(
+                    RegExp(r'[0-9]'),
+                  ),
+                ],
+                onChanged: (value) => input2 = double.parse(value),
+                decoration: InputDecoration(
+                  hintText: widget.hintText,
                 ),
               ),
-              SizedBox(
-                width: 5,
-              ),
-              Text(resultUnit, style: h2TextStyle),
-            ],
-          ), // output
-        ],
+            ), //input
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ConverterButton(
+                  buttonText: widget.lButtonText,
+                  onPressed: () {
+                    SystemChannels.textInput.invokeMethod('TextInput.hide');
+                    result = 0;
+                    result2 = 0;
+                    resultUnit = '';
+                    resultUnit2 = '';
+                    if (widget.lButtonText == lCYButtonText) {
+                      screen = 1;
+                      setState(() {
+                        chainsToYardsConversion(input2);
+                      });
+                    } else {
+                      screen = 2;
+                      setState(() {
+                        chainsToSlusConversion();
+                      });
+                    }
+                  },
+                ),
+                ConverterButton(
+                  buttonText: widget.rButtonText,
+                  onPressed: () {
+                    SystemChannels.textInput.invokeMethod('TextInput.hide');
+                    result = 0;
+                    result2 = 0;
+                    resultUnit = '';
+                    resultUnit2 = '';
+                    if (widget.rButtonText == rCYButtonText) {
+                      screen = 1;
+                      setState(() {
+                        yardsToChainsConversion();
+                      });
+                    } else {
+                      screen = 2;
+                      setState(() {
+                        slusToChainsConversion();
+                      });
+                    }
+                  },
+                ),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              textBaseline: TextBaseline.alphabetic,
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              children: [
+                Text(
+                  result2.toStringAsFixed(1),
+                  style: h1TextStyle.copyWith(
+                    fontSize: 50,
+                  ),
+                ),
+                SizedBox(
+                  width: 5,
+                ),
+                Text(resultUnit2, style: h2TextStyle),
+              ],
+            ), // output
+          ],
+        ),
       ),
     );
   }
@@ -221,13 +381,11 @@ void yardsToChainsConversion() {
 }
 
 void chainsToSlusConversion() {
-  resultUnit = 'SLUs';
-  result = input / 0.31818182;
+  resultUnit2 = 'SLUs';
+  result2 = input2 / 0.31818182;
 }
 
 void slusToChainsConversion() {
-  resultUnit = 'Chains';
-  result = input * 0.31818182;
+  resultUnit2 = 'Chains';
+  result2 = input2 * 0.31818182;
 }
-
-//TODO - get the 2 ConverterLayouts to work independently (result and input)
