@@ -16,7 +16,11 @@ String resultUnit = '';
 String resultUnit2 = '';
 
 void main() {
-  runApp(MaterialApp(home: MainPage()));
+  runApp(
+    MaterialApp(
+      home: MainPage(),
+    ),
+  );
 }
 
 class MainPage extends StatefulWidget {
@@ -68,12 +72,21 @@ class _MainPageState extends State<MainPage> {
                 vertical: 16,
               ),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Image.asset('images/IDLogo.png'),
+                  Row(
+                    children: [
+                      Image.asset('images/IDLogo.png'),
+                      Text(
+                        '  -  2021 ©',
+                        style: TextStyle(color: Colors.white, fontSize: 8),
+                      ),
+                    ],
+                  ),
                   Text(
-                    '  -  2021 ©',
+                    'App Logo provided by vecteezy.com',
                     style: TextStyle(color: Colors.white, fontSize: 8),
-                  )
+                  ),
                 ],
               ),
             ),
